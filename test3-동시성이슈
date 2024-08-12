@@ -250,17 +250,12 @@ DB 개발 관점에서 설계내역도 정리해줘.
 3. **트랜잭션 커밋**: 데이터 수정이 완료되면 트랜잭션을 커밋하여 락을 해제합니다.
 4. **락 해제**: 트랜잭션이 커밋되면 락이 해제되어 다른 트랜잭션이 해당 데이터에 접근할 수 있게 됩니다.
 
-### 예시 코드 (Java + JPA)
-```java
-@Transactional
-public void updateOrder(Long orderId, int newQuantity) {
-    // 데이터 조회 및 락 설정
-    Order order = orderRepository.findById(orderId, LockModeType.PESSIMISTIC_WRITE)
-                                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
-    
-    // 데이터 수정
-    order.setQuantity(newQuantity);
-    
-    // 트랜잭션 커밋 (자동으로 수행됨)
-    orderRepository.save(order);
-}
+비관적 락(Pessimistic Locking)을 사용할 때 적절한 데이터베이스 격리 수준은 **REPEATABLE READ** 또는 **SERIALIZABLE**입니다. 이 두 격리 수준은 다음과 같은 이유로 비관적 락과 잘 맞습니다:
+
+1. **REPEATABLE READ**:
+   - 이 격리 수준에서는 트랜잭션이 시작된 이후에 다른 트랜잭션이 데이터를 수정할 수 없도록 보장합니다.
+   - 비관적 락을 사용할 때, 데이터 조회 시점부터 트랜잭션이 완료될 때까지 데이터의 일관성을 유지할 수 있습니다².
+
+2. **SERIALIZABLE**:
+   - 가장 높은 수준의 격리 수준으로, 모든 트랜잭션이 순차적으로 실행되는 것처럼 보이게 합니다.
+   - 데이터의 일관성을 가장 강력하게 보장하지만, 성능 저하가 발생할 수 있습니다².
